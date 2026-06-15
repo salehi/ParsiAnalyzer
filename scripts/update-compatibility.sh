@@ -27,7 +27,7 @@ latest_per_minor="$(
 )"
 
 # Map each ES version to the JDK that line builds/runs on.
-#   7.0-7.5 -> 8, 7.6-7.17 -> 11, 8.x/9.x -> 17
+#   7.0-7.5 -> 8, 7.6-7.17 -> 11, 8.x -> 17, 9.x+ -> 21
 matrix_tsv="$(
   while read -r ver; do
     [ -z "$ver" ] && continue
@@ -35,7 +35,8 @@ matrix_tsv="$(
     minor="$(printf '%s' "$ver" | cut -d. -f2)"
     if   [ "$major" = "7" ] && [ "$minor" -le 5 ]; then java=8
     elif [ "$major" = "7" ];                        then java=11
-    else                                                 java=17
+    elif [ "$major" = "8" ];                        then java=17
+    else                                                 java=21
     fi
     printf '%s\t%s\n' "$ver" "$java"
   done <<< "$latest_per_minor"

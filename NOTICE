@@ -1,0 +1,24 @@
+ParsiAnalyzer
+Copyright 2017-2026 ParsiAnalyzer contributors
+
+Originally created by Nariman Esmailyfard. Continued as an independent project
+under the "salehi" account. Licensed under the Apache License, Version 2.0 (see
+LICENSE).
+
+This product bundles third-party data:
+
+- Persian stop word list
+  Source: stopwords-iso/stopwords-fa (https://github.com/stopwords-iso/stopwords-fa)
+  License: MIT
+  The list is normalized to canonical Persian letter forms and shipped at
+  src/main/resources/ir/ac/sbu/parsi/data/stopwords.txt
+
+- Persian lemma seed dictionary
+  Curated by the ParsiAnalyzer contributors (Arabic broken plurals and
+  suppletive comparatives). Licensed under Apache-2.0 with the project.
+
+This product is built against Apache Lucene and Elasticsearch APIs (compile-time
+only; not redistributed):
+
+- Apache Lucene — Apache License 2.0
+- Elasticsearch — provided by the target cluster

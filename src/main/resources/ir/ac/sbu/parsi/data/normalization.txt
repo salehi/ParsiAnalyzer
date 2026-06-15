@@ -1,0 +1,24 @@
+# Persian/Arabic letter normalization. Format: <fromCodePoint> <toCodePoint> (hex).
+# Maps variant letters to a single canonical Persian form.
+
+# Alef variants -> Alef (0627)
+0622 0627   # ALEF WITH MADDA ABOVE   (آ)
+0623 0627   # ALEF WITH HAMZA ABOVE   (أ)
+0625 0627   # ALEF WITH HAMZA BELOW   (إ)
+0671 0627   # ALEF WASLA              (ٱ)
+
+# Waw with hamza -> Waw (0648)
+0624 0648   # WAW WITH HAMZA ABOVE    (ؤ)
+
+# Yeh variants -> Farsi Yeh (06CC)
+064A 06CC   # ARABIC YEH              (ي)
+0626 06CC   # YEH WITH HAMZA ABOVE    (ئ)
+0649 06CC   # ALEF MAKSURA            (ى)
+
+# Arabic Kaf -> Persian Keheh (06A9)
+0643 06A9   # ARABIC KAF              (ك)
+
+# Heh variants -> Heh (0647)
+0629 0647   # TEH MARBUTA             (ة)
+06C0 0647   # HEH WITH YEH ABOVE      (ۀ)
+06C2 0647   # HEH WITH HAMZA ABOVE    (ۂ)

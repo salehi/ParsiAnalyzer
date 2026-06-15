@@ -1,0 +1,100 @@
+import groovy.json.JsonSlurper
+
+plugins {
+    id 'java'
+}
+
+// ---- Single source of truth: compatibility.json ----------------------------
+def compat = new JsonSlurper().parse(file('compatibility.json'))
+def esVersion = (project.findProperty('esVersion') ?: '7.13.1').toString()
+
+// Derive the JDK for an ES version, preferring compatibility.json, else the rule
+// 7.0-7.5 -> 8, 7.6-7.17 -> 11, 8.x -> 17, 9.x+ -> 21.
+def deriveJava = { String v ->
+    def p = v.tokenize('.')
+    int maj = p[0] as int
+    int min = (p.size() > 1 ? p[1] : '0') as int
+    if (maj == 7 && min <= 5) return 8
+    if (maj == 7) return 11
+    if (maj == 8) return 17
+    return 21
+}
+def target = compat.targets.find { it.elasticsearch == esVersion }
+int javaRelease = (target?.java ?: deriveJava(esVersion)) as int
+
+group = 'ir.ac.sbu'
+version = compat.version
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly "org.elasticsearch:elasticsearch:${esVersion}"
+    // Tests run the analyzers directly, so they need Lucene + ES on the runtime classpath.
+    testImplementation "org.elasticsearch:elasticsearch:${esVersion}"
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.testcontainers:elasticsearch:1.20.4'
+    testImplementation 'org.testcontainers:junit-jupiter:1.20.4'
+}
+
+java {
+    sourceCompatibility = JavaVersion.toVersion(javaRelease)
+    targetCompatibility = JavaVersion.toVersion(javaRelease)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = javaRelease
+}
+
+test {
+    useJUnitPlatform {
+        excludeTags 'integration'   // container-based tests run via the integrationTest task
+    }
+}
+
+tasks.register('integrationTest', Test) {
+    description = 'Runs container-based integration tests (needs Docker + a built zip).'
+    group = 'verification'
+    useJUnitPlatform { includeTags 'integration' }
+    systemProperty 'parsi.esVersion', esVersion
+    systemProperty 'parsi.distDir', layout.buildDirectory.dir('distributions').get().asFile.absolutePath
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+// ---- Plugin descriptor (templated from compatibility.json + esVersion) ------
+def descriptorJava = (javaRelease == 8) ? '1.8' : javaRelease.toString()
+
+tasks.register('pluginDescriptor', Copy) {
+    from 'src/main/plugin-metadata/plugin-descriptor.properties'
+    into layout.buildDirectory.dir('generated-descriptor')
+    expand(
+        pluginName: 'ParsiAnalyzer',
+        pluginVersion: project.version,
+        pluginDescription: 'Persian (Farsi) analysis plugin for Elasticsearch.',
+        classname: 'ir.ac.sbu.parsi.plugin.ParsiAnalyzerPlugin',
+        javaVersion: descriptorJava,
+        esVersion: esVersion
+    )
+}
+
+// ---- Plugin zip: descriptor + jar at the archive root -----------------------
+tasks.register('pluginZip', Zip) {
+    dependsOn tasks.named('jar'), tasks.named('pluginDescriptor')
+    archiveFileName = "ParsiAnalyzer-${project.version}-elasticsearch-${esVersion}.zip"
+    destinationDirectory = layout.buildDirectory.dir('distributions')
+    from(tasks.named('jar').flatMap { it.archiveFile })
+    from(tasks.named('pluginDescriptor'))
+}
+
+tasks.named('build') {
+    dependsOn 'pluginZip'
+}
+
+tasks.register('printConfig') {
+    doLast {
+        println "ParsiAnalyzer ${project.version} | ES ${esVersion} | release ${javaRelease}"
+    }
+}

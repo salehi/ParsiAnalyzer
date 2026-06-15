@@ -1,0 +1,16 @@
+# Zero-Width Non-Joiner (نیم‌فاصله) rules. Each non-comment line is a Java regex;
+# they are joined with "|" and every match is replaced by U+200C (ZWNJ).
+# Internal spaces are significant (they are the space being converted to ZWNJ).
+# Comments must be on their own line; do not append them after a pattern.
+
+# Strip non-standard zero-width / control characters.
+[​‍‎‏¬]
+
+# Space before a Yeh suffix attached to a word ending in Heh:  "خانه ی" -> "خانه‌ی"
+(?<=[^ ]ه) (?=ی|ي)
+
+# Present-continuous prefixes  "می" / "نمی"  glued to the verb:  "می رود" -> "می‌رود"
+(?<=([^\p{L}]می|[^\p{L}]نمی)) (?=[^ ])
+
+# Common plural / comparative suffixes glued to the stem:  "کتاب ها" -> "کتاب‌ها"
+(?<=[^ ]) (?=(ها|های|هاي|تر|تری|ترین|تري|ترين))

@@ -1,0 +1,9 @@
+.git
+build
+dist
+.gradle
+target
+.idea
+.claude
+*.iml
+*.zip

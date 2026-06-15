@@ -1,0 +1,82 @@
+name: Release
+
+# Tag a version (e.g. v2.0.0) to build a zip for every Elasticsearch version in
+# the matrix and attach them all to the GitHub Release. The matrix comes from the
+# ES_MATRIX repo variable (mirror of compatibility.json), with a fallback to the
+# committed file. workflow_dispatch can build extra exact versions on demand.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      extra_versions:
+        description: 'Extra exact ES versions to build (space separated)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set
+        env:
+          ES_MATRIX: ${{ vars.ES_MATRIX }}
+          EXTRA: ${{ github.event.inputs.extra_versions }}
+        run: |
+          if [ -n "$ES_MATRIX" ]; then printf '%s' "$ES_MATRIX" > m.json; else cp compatibility.json m.json; fi
+          versions=$(jq -c '[.targets[].elasticsearch]' m.json)
+          if [ -n "${EXTRA:-}" ]; then
+            versions=$(jq -c --arg e "$EXTRA" '. + ($e | split(" ") | map(select(length>0))) | unique' <<< "$versions")
+          fi
+          echo "matrix=$versions" >> "$GITHUB_OUTPUT"
+          echo "Building ${versions}"
+
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        esVersion: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build plugin zip for ES ${{ matrix.esVersion }}
+        run: |
+          docker build --target export \
+            --build-arg ES_VERSIONS="${{ matrix.esVersion }}" \
+            --output "type=local,dest=./dist" .
+          ls -l dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zip-${{ matrix.esVersion }}
+          path: dist/*.zip
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: zip-*
+          merge-multiple: true
+      - name: Attach all zips to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -l dist
+          gh release create "${GITHUB_REF_NAME}" dist/*.zip \
+            --title "ParsiAnalyzer ${GITHUB_REF_NAME}" \
+            --notes "ParsiAnalyzer ${GITHUB_REF_NAME} — one zip per Elasticsearch version. See COMPATIBILITY.md. Install: \`bin/elasticsearch-plugin install file:///path/to/ParsiAnalyzer-${GITHUB_REF_NAME}-elasticsearch-<your-version>.zip\`" \
+            || gh release upload "${GITHUB_REF_NAME}" dist/*.zip --clobber

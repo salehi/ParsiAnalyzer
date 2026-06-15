@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  compatibility-doc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: COMPATIBILITY.md is in sync with compatibility.json
+        run: |
+          ./scripts/gen-compat-doc.sh
+          git diff --exit-code COMPATIBILITY.md \
+            || { echo "::error::COMPATIBILITY.md is stale — run 'make docs' and commit."; exit 1; }
+
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set
+        # One representative version per major (latest patch) keeps PR CI fast.
+        run: |
+          reps=$(jq -r '.targets[].elasticsearch' compatibility.json \
+                 | awk -F. '{v[$1]=$0} END{for (k in v) print v[k]}' | sort -V)
+          arr=$(printf '%s\n' $reps | jq -R . | jq -cs .)
+          echo "matrix=$arr" >> "$GITHUB_OUTPUT"
+          echo "Representative versions: $arr"
+
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        esVersion: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Unit tests (ES ${{ matrix.esVersion }})
+        run: ./build.sh test "${{ matrix.esVersion }}"
+      - name: Build zip (ES ${{ matrix.esVersion }})
+        run: ./build.sh build-one "${{ matrix.esVersion }}"

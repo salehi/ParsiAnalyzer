@@ -30,3 +30,8 @@ hs_err_pid*
 log/
 target/
 .claude/settings.local.json
+
+# Gradle / Docker build outputs
+.gradle/
+build/
+dist/

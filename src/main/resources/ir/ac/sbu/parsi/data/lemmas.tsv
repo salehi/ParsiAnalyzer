@@ -1,0 +1,48 @@
+# Persian lemma dictionary: <surface>\t<lemma> (tab separated).
+# Curated seed of irregular forms (Arabic broken plurals, suppletive
+# comparatives) that the light stemmer cannot reduce. Normalized to
+# canonical letter forms. Extend freely; regular suffixes are handled
+# by the stemmer, so only add forms it would get wrong.
+
+کتب	کتاب
+علوم	علم
+معلمین	معلم
+مدارس	مدرسه
+اساتید	استاد
+اعضا	عضو
+افراد	فرد
+نکات	نکته
+لغات	لغت
+کلمات	کلمه
+قوانین	قانون
+مسایل	مسیله
+حقایق	حقیقت
+وقایع	واقعه
+شعرا	شاعر
+علما	عالم
+طلاب	طلبه
+انبیا	نبی
+اولیا	ولی
+ملوک	ملک
+امور	امر
+اخبار	خبر
+اسامی	اسم
+اصول	اصل
+فنون	فن
+رسوم	رسم
+حواس	حس
+ابعاد	بعد
+اعداد	عدد
+احزاب	حزب
+مراکز	مرکز
+مناطق	منطقه
+ادیان	دین
+ابنیه	بنا
+اطلاعات	اطلاع
+تجار	تاجر
+بهتر	خوب
+بهترین	خوب
+بیشتر	زیاد
+بیشترین	زیاد
+کمتر	کم
+کمترین	کم

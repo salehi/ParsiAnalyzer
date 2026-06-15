@@ -1,0 +1,17 @@
+# Characters removed entirely during normalization. Format: <codePoint> (hex).
+# Kashida, standalone hamza, and Arabic diacritics / combining marks.
+
+0640   # TATWEEL (kashida)  (ـ)
+0621   # HAMZA              (ء)
+064B   # FATHATAN
+064C   # DAMMATAN
+064D   # KASRATAN
+064E   # FATHA
+064F   # DAMMA
+0650   # KASRA
+0651   # SHADDA
+0652   # SUKUN
+0653   # MADDAH ABOVE
+0654   # HAMZA ABOVE
+0655   # HAMZA BELOW
+0670   # SUPERSCRIPT ALEF

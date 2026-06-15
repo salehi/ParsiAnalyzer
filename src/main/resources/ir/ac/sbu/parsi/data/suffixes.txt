@@ -1,0 +1,14 @@
+# Persian suffixes stripped by the light stemmer.
+# The longest matching suffix is removed once per token, and never below the
+# configured minimum stem length (default 3). One suffix per line.
+
+ترین    # superlative
+تری     # comparative + indefinite
+تر      # comparative
+هایی    # indefinite plural
+های     # plural + ezafe
+ها      # plural
+یی      # indefinite (yeh)
+ان      # plural / agentive
+ات      # plural (Arabic-derived)
+ی       # adjective / indefinite yeh
