@@ -58,8 +58,10 @@ public final class ParsiResources {
              BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String stripped = line.stripLeading();
-                if (stripped.isEmpty() || stripped.startsWith("#")) {
+                // trim() only for the blank/comment check; the original line is kept
+                // so internal spaces in regex patterns are preserved. (Java 8 safe.)
+                String trimmed = line.trim();
+                if (trimmed.isEmpty() || trimmed.startsWith("#")) {
                     continue;
                 }
                 out.add(line);
